@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Read Together — Buck Run Baptist Church</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1F3345;        /* Navy — text / foreground, unchanged role */
+    --deep:#080D12;       /* Deep — dark panel backgrounds (replaces Navy-as-bg) */
+    --accent:#F95733;     /* Tangerine — the one accent color (replaces red) */
+    --seafoam:#8AB3B1;
+    --sage:#335E53;
+    --cloud:#EFEDE3;
+    --copper:#C78E58;
+    --display:'Barlow Condensed', sans-serif;
+    --body:'Source Serif 4', Georgia, serif;
+    --script:'Caveat', cursive;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--cloud); color:var(--ink);
+    font-family:var(--body); line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion:reduce){ *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;} }
+  a{color:inherit;}
+  button{font-family:inherit; cursor:pointer;}
+  :focus-visible{outline:3px solid var(--accent); outline-offset:2px;}
+
+  /* ---------- layout shells (mobile-first base) ---------- */
+  .wrap{max-width:920px; margin:0 auto; padding:0 16px;}
+  section{padding:36px 0;}
+  h1,h2,h3{font-family:var(--display); font-weight:800; letter-spacing:0.01em; margin:0;}
+  .eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--sage); margin:0 0 8px;}
+
+  /* ---------- topographic contour texture (signature element) ----------
+     Rounded, hand-drawn-feeling contour lines, like elevation rings on a
+     topo map — Buck Run's "Southern Outdoor" mark, reused as the one place
+     this page takes a visual risk. Used only on Deep panels, very low
+     opacity so it reads as texture, not decoration. */
+  .topo{
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:0;
+  }
+  .topo path{ fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---------- topbar ---------- */
+  .topbar{
+    background:var(--deep); color:var(--cloud);
+    padding:14px 0;
+    position:sticky; top:0; z-index:40;
+    border-bottom:3px solid var(--accent);
+  }
+  .topbar .wrap{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .mark{width:30px; height:30px; flex:none;}
+  .brand-wordmark{font-family:var(--display); font-size:19px; font-weight:800; letter-spacing:0.02em; color:var(--cloud); line-height:1;}
+  .brand-wordmark span{color:var(--accent);}
+  .brand-sub{font-family:var(--mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--seafoam); margin-top:2px;}
+  .year-chip{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--deep); background:var(--seafoam); padding:5px 10px; border-radius:20px; white-space:nowrap;
+  }
+
+  /* ---------- hero / weekly strip (mobile-first: stacked) ---------- */
+  .hero{padding-top:28px; padding-bottom:20px;}
+  .hero-grid{display:grid; grid-template-columns:1fr; gap:16px;}
+  @media (min-width:900px){ .hero-grid{grid-template-columns:1.9fr 1fr; align-items:start;} }
+
+  .week-panel{
+    background:var(--deep); color:var(--cloud);
+    border-radius:4px; padding:20px 16px 18px;
+    position:relative; overflow:hidden; isolation:isolate;
+  }
+  .week-panel > *:not(.topo){position:relative;}
+  .week-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px; flex-wrap:wrap;}
+  .week-head .eyebrow{margin:0; color:var(--seafoam);}
+  .week-title{font-family:var(--display); font-size:19px; font-weight:800;}
+  .week-nav{display:flex; align-items:center; gap:6px;}
+  .week-nav-btn{
+    width:36px; height:36px; border-radius:3px; border:1px solid rgba(239,237,227,0.3);
+    background:rgba(239,237,227,0.06); color:var(--cloud); display:flex; align-items:center; justify-content:center;
+  }
+  .week-nav-btn:disabled{opacity:0.3; cursor:default;}
+  .week-nav-btn svg{width:16px; height:16px;}
+  .jump-current{
+    font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--accent); background:none; border:none; padding:0; margin-left:2px;
+  }
+  .week-subhint{font-family:var(--mono); font-size:10.5px; color:rgba(239,237,227,0.55); margin-bottom:14px;}
+
+  /* mobile-first: day cards stack full-width, easy to scan thumb-down */
+  .week-grid{display:flex; flex-direction:column; gap:10px;}
+  @media (min-width:640px){ .week-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:10px;} }
+
+  .day-card{
+    background:rgba(239,237,227,0.06); border:1.5px solid rgba(239,237,227,0.2); border-radius:4px;
+    padding:14px 14px; display:flex; flex-direction:row; align-items:center; gap:12px; min-height:auto;
+  }
+  @media (min-width:640px){ .day-card{flex-direction:column; align-items:stretch; min-height:150px; gap:8px;} }
+  .day-card.next{border-color:var(--accent); background:rgba(249,87,51,0.14); box-shadow:0 0 0 3px rgba(249,87,51,0.12) inset;}
+  .day-card.checked{opacity:0.68;}
+  .day-card.rest{border-style:dashed;}
+  .day-card-text{flex:1; min-width:0;}
+  .day-card-label{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--copper);}
+  .day-card.next .day-card-label{color:var(--accent);}
+  .day-card-book{font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; color:rgba(239,237,227,0.5); margin-top:2px;}
+  .day-card-ref{font-family:var(--display); font-weight:800; font-size:18px; line-height:1.1; margin-top:2px;}
+  .day-card-companion{font-family:var(--mono); font-size:10px; color:var(--seafoam); margin-top:3px;}
+  .whole-tag{
+    display:inline-block; font-family:var(--mono); font-size:9px; letter-spacing:0.06em; text-transform:uppercase;
+    background:rgba(138,179,177,0.18); color:var(--seafoam); border:1px solid rgba(138,179,177,0.4);
+    padding:2px 6px; border-radius:3px; margin-top:4px;
+  }
+  .day-card-check{
+    flex:none; width:52px; height:52px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--accent); color:var(--cloud); border:none;
+  }
+  @media (min-width:640px){
+    .day-card-check{
+      width:100%; height:auto; border-radius:3px; margin-top:auto; padding:9px 6px; gap:6px;
+      font-family:var(--display); font-weight:700; font-size:12px; letter-spacing:0.02em;
+    }
+  }
+  .day-card-check .label-text{display:none;}
+  @media (min-width:640px){ .day-card-check .label-text{display:inline;} }
+  .day-card.checked .day-card-check{background:var(--sage);}
+  .day-card-check svg{opacity:0.45;}
+  .day-card.checked .day-card-check svg{opacity:1;}
+  .day-card-check svg{width:20px; height:20px;}
+  @media (min-width:640px){ .day-card-check svg{width:13px; height:13px;} }
+
+  .all-caught-up{font-family:var(--body); font-style:italic; color:var(--seafoam); font-size:16px; max-width:40ch; padding:8px 0;}
+
+  /* ---------- progress card ---------- */
+  .progress-card{
+    background:#fff; border:1px solid rgba(31,51,69,0.12); border-radius:4px; padding:20px 18px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .ring-row{display:flex; align-items:center; gap:16px;}
+  .ring{position:relative; width:80px; height:80px; flex:none;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring-label{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .ring-pct{font-family:var(--display); font-weight:800; font-size:19px; line-height:1;}
+  .ring-of{font-family:var(--mono); font-size:8.5px; color:var(--sage); text-transform:uppercase; letter-spacing:0.05em;}
+  .ring-caption{font-family:var(--body); font-size:13.5px; color:rgba(31,51,69,0.75); max-width:24ch;}
+  .stat-block b{display:block; font-family:var(--display); font-size:23px; font-weight:800;}
+  .stat-block span{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--sage);}
+  .stat-row{display:flex; gap:20px; border-top:1px solid rgba(31,51,69,0.1); padding-top:14px; flex-wrap:wrap;}
+
+  /* ---------- trail ---------- */
+  .trail-section{padding-top:4px; padding-bottom:20px;}
+  .trail-scroll{overflow-x:auto; padding-bottom:12px; margin:0 -16px; padding-left:16px; padding-right:16px;}
+  .trail-track{display:flex; align-items:center; min-width:max-content; position:relative;}
+  .trail-node-wrap{display:flex; align-items:center;}
+  /* contour-tick connector: short rounded arcs instead of a straight dashed line */
+  .trail-dash{width:30px; height:10px; flex:none;}
+  .trail-node{
+    display:flex; flex-direction:column; align-items:center; gap:7px; flex:none; width:88px;
+    background:none; border:none; padding:6px 0; color:inherit;
+  }
+  .chevron{
+    width:28px; height:28px; position:relative;
+    background:#fff; border:2px solid var(--sage); transform:rotate(45deg); border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .chevron.rest{border-style:dashed;}
+  .chevron.done{background:var(--sage); border-color:var(--sage);}
+  .chevron.current{background:var(--accent); border-color:var(--accent); box-shadow:0 0 0 4px rgba(249,87,51,0.18);}
+  .chevron svg{transform:rotate(-45deg); width:14px; height:14px;}
+  .trail-node-name{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:0.03em; text-align:center; color:var(--ink); line-height:1.25;}
+  .trail-node.current .trail-node-name{color:var(--accent); font-weight:600;}
+  .here-pin{font-family:var(--mono); font-size:8.5px; letter-spacing:0.07em; text-transform:uppercase; color:var(--accent); font-weight:600;}
+
+  /* ---------- plan list ---------- */
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap;}
+  .book-group{border-top:1px solid rgba(31,51,69,0.14);}
+  .book-group:last-child{border-bottom:1px solid rgba(31,51,69,0.14);}
+  .book-toggle{
+    width:100%; background:none; border:none; text-align:left;
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 2px; color:var(--ink); min-height:48px;
+  }
+  .book-toggle-left{display:flex; align-items:center; gap:12px; min-width:0;}
+  .book-toggle .testament-dot{width:9px; height:9px; border-radius:50%; flex:none;}
+  .testament-dot.ot{background:var(--copper);}
+  .testament-dot.nt{background:var(--seafoam);}
+  .testament-dot.rest{background:var(--sage);}
+  .book-toggle-name{font-family:var(--display); font-weight:700; font-size:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .book-toggle-meta{font-family:var(--mono); font-size:10.5px; color:var(--sage); text-transform:uppercase; letter-spacing:0.03em; flex:none;}
+  .book-toggle-caret{transition:transform 0.15s ease; flex:none;}
+  .book-toggle-caret svg{width:16px; height:16px;}
+  .book-toggle[aria-expanded="true"] .book-toggle-caret{transform:rotate(180deg);}
+  .day-list{list-style:none; margin:0; padding:0 2px 16px; display:none;}
+  .day-list.open{display:block;}
+  .day-row{
+    display:flex; align-items:center; gap:12px; padding:10px 0;
+    border-bottom:1px dashed rgba(31,51,69,0.1);
+  }
+  .day-row:last-child{border-bottom:none;}
+  .day-check{
+    width:26px; height:26px; flex:none; border-radius:5px; border:2px solid var(--sage);
+    background:#fff; display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .day-check.checked{background:var(--sage);}
+  .day-check svg{width:14px; height:14px; visibility:hidden;}
+  .day-check.checked svg{visibility:visible;}
+  .day-row-ref{font-weight:600; font-size:15px; min-width:0;}
+  .day-row-companion{font-family:var(--mono); font-size:11px; color:var(--sage); margin-left:auto; text-align:right; white-space:nowrap; padding-left:8px;}
+  .day-row.whole .day-row-ref::after{content:" ●"; color:var(--accent); font-size:10px;}
+
+  /* ---------- resources ---------- */
+  .resources{background:var(--sage); color:var(--cloud);}
+  .resources .eyebrow{color:var(--seafoam);}
+  .res-grid{display:grid; grid-template-columns:1fr; gap:14px; margin-top:18px;}
+  @media (min-width:720px){ .res-grid{grid-template-columns:repeat(3,1fr);} }
+  .res-card{
+    background:rgba(239,237,227,0.08); border:1px solid rgba(239,237,227,0.22); border-radius:4px;
+    padding:18px 18px 16px; display:flex; flex-direction:column; gap:9px;
+  }
+  .res-card h3{font-size:18px;}
+  .res-card p{margin:0; font-size:14px; color:rgba(239,237,227,0.88);}
+  .res-placeholder{font-family:var(--mono); font-size:10.5px; color:rgba(239,237,227,0.5); font-style:italic; margin-top:auto; padding-top:4px;}
+
+  /* ---------- invite ---------- */
+  .invite-card{
+    background:#fff; border:1px solid rgba(31,51,69,0.12); border-radius:4px;
+    padding:24px 18px; display:grid; grid-template-columns:1fr; gap:18px;
+  }
+  @media (min-width:720px){ .invite-card{grid-template-columns:1.3fr 1fr; align-items:center;} }
+  .invite-copy .script{font-family:var(--script); font-size:24px; color:var(--accent); display:block; margin-bottom:6px;}
+  .invite-copy p{margin:0; color:rgba(31,51,69,0.8); font-size:14.5px; max-width:44ch;}
+  .invite-box textarea{
+    width:100%; min-height:92px; resize:vertical; font-family:var(--body); font-size:14.5px;
+    border:1px solid rgba(31,51,69,0.25); border-radius:4px; padding:12px; color:var(--ink); background:var(--cloud);
+  }
+  .invite-actions{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
+  .btn-secondary{
+    font-family:var(--display); font-weight:700; font-size:14.5px; letter-spacing:0.02em;
+    background:var(--deep); color:var(--cloud); border:none; border-radius:3px; padding:11px 16px; min-height:44px;
+  }
+  .btn-ghost{
+    font-family:var(--display); font-weight:700; font-size:14.5px; letter-spacing:0.02em;
+    background:none; color:var(--ink); border:1.5px solid var(--ink); border-radius:3px; padding:9px 16px; min-height:44px;
+  }
+  .copied-note{font-family:var(--mono); font-size:11px; color:var(--sage); margin-top:8px; height:14px;}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--deep); color:var(--cloud); padding:30px 0; position:relative; overflow:hidden; isolation:isolate;}
+  footer .wrap{position:relative;}
+  footer .tagline{font-family:var(--script); font-size:22px; color:var(--seafoam);}
+  footer .fine{font-family:var(--mono); font-size:10.5px; color:rgba(239,237,227,0.5); margin-top:10px; line-height:1.7; max-width:60ch;}
+
+  .placeholder-flag{
+    font-family:var(--mono); font-size:10.5px; color:var(--accent); background:rgba(249,87,51,0.07);
+    border:1px dashed var(--accent); border-radius:3px; padding:8px 12px; margin-top:14px; max-width:60ch;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 40 40" fill="none">
+        <path d="M20 3 L36 17 L31 17 L31 34 L9 34 L9 17 L4 17 Z" fill="#EFEDE3"/>
+        <path d="M20 3 L26 8.3 L14 8.3 Z" fill="#F95733"/>
+        <rect x="15" y="24" width="10" height="10" fill="#080D12"/>
+      </svg>
+      <div>
+        <div class="brand-wordmark">READ <span>TOGETHER</span></div>
+        <div class="brand-sub">Buck Run Baptist Church</div>
+      </div>
+    </div>
+    <div class="year-chip">Year One</div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="week-panel">
+          <svg class="topo" viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden="true">
+            <g opacity="0.16" stroke="#8AB3B1" stroke-width="1.4">
+              <path d="M-20,210 C40,180 70,230 120,200 C170,170 200,215 250,190 C300,165 330,205 420,180"/>
+              <path d="M-20,235 C50,205 90,245 140,220 C190,195 230,235 280,210 C330,185 360,220 420,205"/>
+              <path d="M-20,185 C30,160 60,195 110,175 C160,155 190,185 240,165 C290,145 320,175 420,155"/>
+            </g>
+            <g opacity="0.1" stroke="#C78E58" stroke-width="1.2">
+              <path d="M-20,20 C40,45 80,10 130,35 C180,60 220,25 270,45 C320,65 360,35 420,50"/>
+              <path d="M-20,45 C45,68 85,35 135,58 C185,80 225,50 275,68 C325,88 365,60 420,75"/>
+            </g>
+          </svg>
+          <div class="week-head">
+            <div>
+              <p class="eyebrow" style="margin-bottom:2px;">This Week</p>
+              <div class="week-title" id="weekTitle">Week 1</div>
+            </div>
+            <div class="week-nav">
+              <button class="week-nav-btn" id="weekPrevBtn" aria-label="Previous week"><svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="#EFEDE3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="week-nav-btn" id="weekNextBtn" aria-label="Next week"><svg viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="#EFEDE3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="jump-current" id="jumpCurrentBtn">Jump to current week</button>
+            </div>
+          </div>
+          <div class="week-subhint" id="weekSubhint">Check off each reading whenever you get to it.</div>
+          <div class="week-grid" id="weekGrid"></div>
+        </div>
+        <div class="progress-card">
+          <p class="eyebrow" style="margin-bottom:0;">Your Progress</p>
+          <div class="ring-row">
+            <div class="ring">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="#e7e3d6" stroke-width="8"/>
+                <circle id="ringFg" cx="40" cy="40" r="34" fill="none" stroke="#F95733" stroke-width="8" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+              </svg>
+              <div class="ring-label">
+                <div class="ring-pct" id="ringPct">0%</div>
+                <div class="ring-of">of Year 1</div>
+              </div>
+            </div>
+            <div class="ring-caption">through this year's reading plan</div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-block"><b id="statDone">0</b><span>Days Read</span></div>
+            <div class="stat-block"><b id="statStreak">0</b><span>In A Row</span></div>
+            <div class="stat-block"><b id="statBook">—</b><span>Current Book</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trail-section">
+    <div class="wrap">
+      <p class="eyebrow">The Trail — Year One</p>
+      <div class="trail-scroll">
+        <div class="trail-track" id="trailTrack"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="plan-list">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>The Full Plan</h2>
+        <span style="font-family:var(--mono); font-size:10.5px; color:var(--sage); text-transform:uppercase;">Tap any day to mark it</span>
+      </div>
+      <div id="planList"></div>
+    </div>
+  </section>
+
+  <section class="resources">
+    <div class="wrap">
+      <p class="eyebrow">Go Deeper</p>
+      <h2 style="font-size:27px;">Read it, then talk about it.</h2>
+      <div class="res-grid">
+        <div class="res-card">
+          <h3>Adult Discipleship Classes</h3>
+          <p>Christian Story runs alongside this plan in 6-week cycles — the same ground, taught out loud on Sundays.</p>
+          <span class="res-placeholder">Add class schedule link</span>
+        </div>
+        <div class="res-card">
+          <h3>Community Groups</h3>
+          <p>Read it alone, talk about it together. Groups meet the 2nd &amp; 4th Sundays — Known, Transformed, Sent.</p>
+          <span class="res-placeholder">Add group finder link</span>
+        </div>
+        <div class="res-card">
+          <h3>How to Read This Plan</h3>
+          <p>Why the pace changes book to book, what the whole-chapter days mean, and what to do if you fall behind.</p>
+          <span class="res-placeholder">Add reading guide link</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="invite">
+    <div class="wrap">
+      <div class="invite-card">
+        <div class="invite-copy">
+          <span class="script">Don't read alone.</span>
+          <p>Send this to someone you want reading with you — a Community Group, a friend, your family.</p>
+        </div>
+        <div class="invite-box">
+          <textarea id="inviteText" readonly></textarea>
+          <div class="invite-actions">
+            <button class="btn-secondary" id="copyBtn">Copy Message</button>
+            <button class="btn-ghost" id="reshuffleBtn">Regenerate</button>
+          </div>
+          <div class="copied-note" id="copiedNote"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <svg class="topo" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true">
+    <g opacity="0.12" stroke="#8AB3B1" stroke-width="1.2">
+      <path d="M-20,140 C40,115 80,150 130,125 C180,100 220,135 270,110 C320,90 360,120 420,100"/>
+      <path d="M-20,160 C45,135 90,170 140,145 C190,120 230,155 280,130 C330,110 365,140 420,120"/>
+    </g>
+  </svg>
+  <div class="wrap">
+    <div class="tagline">All for the Glory of God</div>
+    <div class="fine">
+      Progress currently saves to this device only. Once account login is added, your progress and invited groups will sync across devices — this preview is here so we can see how the daily-reading, tracking, and invite pieces feel before we build that part.
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // ---------------- data: Year 1, from the Buck Run reading plan workbook ----------------
+  const PLAN = [{"id":"y1-001","week":1,"day":1,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 1–2","whole":false,"companion":"Psalm 1","isRest":false,"finishesBook":false},{"id":"y1-002","week":1,"day":2,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 3","whole":false,"companion":"Psalm 2","isRest":false,"finishesBook":false},{"id":"y1-003","week":1,"day":3,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 4–5","whole":false,"companion":"Psalm 3","isRest":false,"finishesBook":false},{"id":"y1-004","week":1,"day":4,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 6–7","whole":false,"companion":"Psalm 4","isRest":false,"finishesBook":false},{"id":"y1-005","week":1,"day":5,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 8","whole":false,"companion":"Psalm 5","isRest":false,"finishesBook":false},{"id":"y1-006","week":2,"day":1,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 9–10","whole":false,"companion":"Psalm 6","isRest":false,"finishesBook":false},{"id":"y1-007","week":2,"day":2,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 11–12","whole":false,"companion":"Psalm 7","isRest":false,"finishesBook":false},{"id":"y1-008","week":2,"day":3,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 13–14","whole":false,"companion":"Psalm 8","isRest":false,"finishesBook":false},{"id":"y1-009","week":2,"day":4,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 15–16","whole":false,"companion":"Psalm 9","isRest":false,"finishesBook":false},{"id":"y1-010","week":2,"day":5,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 17–18","whole":false,"companion":"Psalm 10","isRest":false,"finishesBook":false},{"id":"y1-011","week":3,"day":1,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 19–20","whole":false,"companion":"Psalm 11","isRest":false,"finishesBook":false},{"id":"y1-012","week":3,"day":2,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 21–22","whole":false,"companion":"Psalm 12","isRest":false,"finishesBook":false},{"id":"y1-013","week":3,"day":3,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 23–24","whole":false,"companion":"Psalm 13","isRest":false,"finishesBook":false},{"id":"y1-014","week":3,"day":4,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 25–26","whole":false,"companion":"Psalm 14","isRest":false,"finishesBook":false},{"id":"y1-015","week":3,"day":5,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 27–28","whole":false,"companion":"Psalm 15","isRest":false,"finishesBook":false},{"id":"y1-016","week":4,"day":1,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 29–30","whole":false,"companion":"Psalm 16","isRest":false,"finishesBook":false},{"id":"y1-017","week":4,"day":2,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 31","whole":false,"companion":"Psalm 17","isRest":false,"finishesBook":false},{"id":"y1-018","week":4,"day":3,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 32","whole":false,"companion":"Psalm 18","isRest":false,"finishesBook":false},{"id":"y1-019","week":4,"day":4,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 33–34","whole":false,"companion":"Psalm 19","isRest":false,"finishesBook":false},{"id":"y1-020","week":4,"day":5,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 35–36","whole":false,"companion":"Psalm 20","isRest":false,"finishesBook":false},{"id":"y1-021","week":5,"day":1,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 37","whole":false,"companion":"Psalm 21","isRest":false,"finishesBook":false},{"id":"y1-022","week":5,"day":2,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 38-39","whole":false,"companion":"Psalm 22","isRest":false,"finishesBook":false},{"id":"y1-023","week":5,"day":3,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 40","whole":false,"companion":"Psalm 23","isRest":false,"finishesBook":false},{"id":"y1-024","week":5,"day":4,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 41","whole":false,"companion":"Psalm 24","isRest":false,"finishesBook":false},{"id":"y1-025","week":5,"day":5,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 42-43","whole":false,"companion":"Psalm 25","isRest":false,"finishesBook":false},{"id":"y1-026","week":6,"day":1,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 44","whole":false,"companion":"Psalm 26","isRest":false,"finishesBook":false},{"id":"y1-027","week":6,"day":2,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 45","whole":false,"companion":"Psalm 27","isRest":false,"finishesBook":false},{"id":"y1-028","week":6,"day":3,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 46-47","whole":false,"companion":"Psalm 28","isRest":false,"finishesBook":false},{"id":"y1-029","week":6,"day":4,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 48-49","whole":false,"companion":"Psalm 29","isRest":false,"finishesBook":false},{"id":"y1-030","week":6,"day":5,"book":"Genesis","testament":"OT","genre":"Narrative","ref":"Genesis 50","whole":false,"companion":"Psalm 30","isRest":false,"finishesBook":true},{"id":"y1-031","week":7,"day":1,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 1","whole":false,"companion":"Psalm 31","isRest":false,"finishesBook":false},{"id":"y1-032","week":7,"day":2,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 2","whole":false,"companion":"Psalm 32","isRest":false,"finishesBook":false},{"id":"y1-033","week":7,"day":3,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 3","whole":false,"companion":"Psalm 33","isRest":false,"finishesBook":false},{"id":"y1-034","week":7,"day":4,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 4:1-11","whole":false,"companion":"Psalm 34","isRest":false,"finishesBook":false},{"id":"y1-035","week":7,"day":5,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 4:12-25","whole":false,"companion":"Psalm 35","isRest":false,"finishesBook":false},{"id":"y1-036","week":8,"day":1,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 5:1-16","whole":false,"companion":"Psalm 36","isRest":false,"finishesBook":false},{"id":"y1-037","week":8,"day":2,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 5:17-48","whole":false,"companion":"Psalm 37","isRest":false,"finishesBook":false},{"id":"y1-038","week":8,"day":3,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 6:1-18","whole":false,"companion":"Psalm 38","isRest":false,"finishesBook":false},{"id":"y1-039","week":8,"day":4,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 6:19-34","whole":false,"companion":"Psalm 39","isRest":false,"finishesBook":false},{"id":"y1-040","week":8,"day":5,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 7","whole":false,"companion":"Psalm 40","isRest":false,"finishesBook":false},{"id":"y1-041","week":9,"day":1,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 8","whole":false,"companion":"Psalm 41","isRest":false,"finishesBook":false},{"id":"y1-042","week":9,"day":2,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 9","whole":false,"companion":"Psalm 42","isRest":false,"finishesBook":false},{"id":"y1-043","week":9,"day":3,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 10","whole":false,"companion":"Psalm 43","isRest":false,"finishesBook":false},{"id":"y1-044","week":9,"day":4,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 11","whole":false,"companion":"Psalm 44","isRest":false,"finishesBook":false},{"id":"y1-045","week":9,"day":5,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 12","whole":false,"companion":"Psalm 45","isRest":false,"finishesBook":false},{"id":"y1-046","week":10,"day":1,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 13:1-23","whole":false,"companion":"Psalm 46","isRest":false,"finishesBook":false},{"id":"y1-047","week":10,"day":2,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 13:24-58","whole":false,"companion":"Psalm 47","isRest":false,"finishesBook":false},{"id":"y1-048","week":10,"day":3,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 14","whole":false,"companion":"Psalm 48","isRest":false,"finishesBook":false},{"id":"y1-049","week":10,"day":4,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 15","whole":false,"companion":"Psalm 49","isRest":false,"finishesBook":false},{"id":"y1-050","week":10,"day":5,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 16","whole":false,"companion":"Psalm 50","isRest":false,"finishesBook":false},{"id":"y1-051","week":11,"day":1,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 17","whole":false,"companion":"Psalm 51","isRest":false,"finishesBook":false},{"id":"y1-052","week":11,"day":2,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 18","whole":false,"companion":"Psalm 52","isRest":false,"finishesBook":false},{"id":"y1-053","week":11,"day":3,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 19","whole":false,"companion":"Psalm 53","isRest":false,"finishesBook":false},{"id":"y1-054","week":11,"day":4,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 20","whole":false,"companion":"Psalm 54","isRest":false,"finishesBook":false},{"id":"y1-055","week":11,"day":5,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 21","whole":false,"companion":"Psalm 55","isRest":false,"finishesBook":false},{"id":"y1-056","week":12,"day":1,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 22","whole":false,"companion":"Psalm 56","isRest":false,"finishesBook":false},{"id":"y1-057","week":12,"day":2,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 23","whole":false,"companion":"Psalm 57","isRest":false,"finishesBook":false},{"id":"y1-058","week":12,"day":3,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 24","whole":false,"companion":"Psalm 58","isRest":false,"finishesBook":false},{"id":"y1-059","week":12,"day":4,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 25:1-30","whole":false,"companion":"Psalm 59","isRest":false,"finishesBook":false},{"id":"y1-060","week":12,"day":5,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 25:31-46","whole":false,"companion":"Psalm 60","isRest":false,"finishesBook":false},{"id":"y1-061","week":13,"day":1,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 26","whole":true,"companion":"Psalm 61","isRest":false,"finishesBook":false},{"id":"y1-062","week":13,"day":2,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 26:1–38","whole":false,"companion":"Psalm 62","isRest":false,"finishesBook":false},{"id":"y1-063","week":13,"day":3,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 26:39–75","whole":false,"companion":"Psalm 63","isRest":false,"finishesBook":false},{"id":"y1-064","week":13,"day":4,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 27","whole":false,"companion":"Psalm 64","isRest":false,"finishesBook":false},{"id":"y1-065","week":13,"day":5,"book":"Matthew","testament":"NT","genre":"Gospel","ref":"Matthew 28","whole":false,"companion":"Psalm 65","isRest":false,"finishesBook":true},{"id":"y1-066","week":14,"day":1,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 66","isRest":true},{"id":"y1-067","week":14,"day":2,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 67","isRest":true},{"id":"y1-068","week":14,"day":3,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 68","isRest":true},{"id":"y1-069","week":14,"day":4,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 69","isRest":true},{"id":"y1-070","week":14,"day":5,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 70","isRest":true},{"id":"y1-071","week":15,"day":1,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 1-2","whole":false,"companion":"Psalm 71","isRest":false,"finishesBook":false},{"id":"y1-072","week":15,"day":2,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 3-4","whole":false,"companion":"Psalm 72","isRest":false,"finishesBook":false},{"id":"y1-073","week":15,"day":3,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 5-6","whole":false,"companion":"Psalm 73","isRest":false,"finishesBook":false},{"id":"y1-074","week":15,"day":4,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 7-8","whole":false,"companion":"Psalm 74","isRest":false,"finishesBook":false},{"id":"y1-075","week":15,"day":5,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 9-10","whole":false,"companion":"Psalm 75","isRest":false,"finishesBook":false},{"id":"y1-076","week":16,"day":1,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 11","whole":false,"companion":"Psalm 76","isRest":false,"finishesBook":false},{"id":"y1-077","week":16,"day":2,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 12:1-28","whole":false,"companion":"Psalm 77","isRest":false,"finishesBook":false},{"id":"y1-078","week":16,"day":3,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 12:29-51","whole":false,"companion":"Psalm 78","isRest":false,"finishesBook":false},{"id":"y1-079","week":16,"day":4,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 13","whole":false,"companion":"Psalm 79","isRest":false,"finishesBook":false},{"id":"y1-080","week":16,"day":5,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 14","whole":false,"companion":"Psalm 80","isRest":false,"finishesBook":false},{"id":"y1-081","week":17,"day":1,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 15","whole":false,"companion":"Psalm 81","isRest":false,"finishesBook":false},{"id":"y1-082","week":17,"day":2,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 16","whole":false,"companion":"Psalm 82","isRest":false,"finishesBook":false},{"id":"y1-083","week":17,"day":3,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 17","whole":false,"companion":"Psalm 83","isRest":false,"finishesBook":false},{"id":"y1-084","week":17,"day":4,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 18","whole":false,"companion":"Psalm 84","isRest":false,"finishesBook":false},{"id":"y1-085","week":17,"day":5,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 19","whole":false,"companion":"Psalm 85","isRest":false,"finishesBook":false},{"id":"y1-086","week":18,"day":1,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 20","whole":false,"companion":"Psalm 86","isRest":false,"finishesBook":false},{"id":"y1-087","week":18,"day":2,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 21-22","whole":false,"companion":"Psalm 87","isRest":false,"finishesBook":false},{"id":"y1-088","week":18,"day":3,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 23-24","whole":false,"companion":"Psalm 88","isRest":false,"finishesBook":false},{"id":"y1-089","week":18,"day":4,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 25-26","whole":false,"companion":"Psalm 89","isRest":false,"finishesBook":false},{"id":"y1-090","week":18,"day":5,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 27","whole":false,"companion":"Psalm 90","isRest":false,"finishesBook":false},{"id":"y1-091","week":19,"day":1,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 28-29","whole":false,"companion":"Psalm 91","isRest":false,"finishesBook":false},{"id":"y1-092","week":19,"day":2,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 30-31","whole":false,"companion":"Psalm 92","isRest":false,"finishesBook":false},{"id":"y1-093","week":19,"day":3,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 32","whole":false,"companion":"Psalm 93","isRest":false,"finishesBook":false},{"id":"y1-094","week":19,"day":4,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 33","whole":false,"companion":"Psalm 94","isRest":false,"finishesBook":false},{"id":"y1-095","week":19,"day":5,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 34","whole":false,"companion":"Psalm 95","isRest":false,"finishesBook":false},{"id":"y1-096","week":20,"day":1,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 35-36","whole":false,"companion":"Psalm 96","isRest":false,"finishesBook":false},{"id":"y1-097","week":20,"day":2,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 37","whole":false,"companion":"Psalm 97","isRest":false,"finishesBook":false},{"id":"y1-098","week":20,"day":3,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 38","whole":false,"companion":"Psalm 98","isRest":false,"finishesBook":false},{"id":"y1-099","week":20,"day":4,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 39","whole":false,"companion":"Psalm 99","isRest":false,"finishesBook":false},{"id":"y1-100","week":20,"day":5,"book":"Exodus","testament":"OT","genre":"Narrative","ref":"Exodus 40","whole":false,"companion":"Psalm 100","isRest":false,"finishesBook":true},{"id":"y1-101","week":21,"day":1,"book":"James","testament":"NT","genre":"Epistle","ref":"James 1","whole":true,"companion":"Psalm 101","isRest":false,"finishesBook":false},{"id":"y1-102","week":21,"day":2,"book":"James","testament":"NT","genre":"Epistle","ref":"James 1:1–4","whole":false,"companion":"Psalm 102","isRest":false,"finishesBook":false},{"id":"y1-103","week":21,"day":3,"book":"James","testament":"NT","genre":"Epistle","ref":"James 1:5–11","whole":false,"companion":"Psalm 103","isRest":false,"finishesBook":false},{"id":"y1-104","week":21,"day":4,"book":"James","testament":"NT","genre":"Epistle","ref":"James 1:12-18","whole":false,"companion":"Psalm 104","isRest":false,"finishesBook":false},{"id":"y1-105","week":21,"day":5,"book":"James","testament":"NT","genre":"Epistle","ref":"James 1:19-27","whole":false,"companion":"Psalm 105","isRest":false,"finishesBook":false},{"id":"y1-106","week":22,"day":1,"book":"James","testament":"NT","genre":"Epistle","ref":"James 2","whole":true,"companion":"Psalm 106","isRest":false,"finishesBook":false},{"id":"y1-107","week":22,"day":2,"book":"James","testament":"NT","genre":"Epistle","ref":"James 2:1-7","whole":false,"companion":"Psalm 107","isRest":false,"finishesBook":false},{"id":"y1-108","week":22,"day":3,"book":"James","testament":"NT","genre":"Epistle","ref":"James 2:8-13","whole":false,"companion":"Psalm 108","isRest":false,"finishesBook":false},{"id":"y1-109","week":22,"day":4,"book":"James","testament":"NT","genre":"Epistle","ref":"James 2:14-17","whole":false,"companion":"Psalm 109","isRest":false,"finishesBook":false},{"id":"y1-110","week":22,"day":5,"book":"James","testament":"NT","genre":"Epistle","ref":"James 2:18-26","whole":false,"companion":"Psalm 110","isRest":false,"finishesBook":false},{"id":"y1-111","week":23,"day":1,"book":"James","testament":"NT","genre":"Epistle","ref":"James 3","whole":true,"companion":"Psalm 111","isRest":false,"finishesBook":false},{"id":"y1-112","week":23,"day":2,"book":"James","testament":"NT","genre":"Epistle","ref":"James 3:1-5","whole":false,"companion":"Psalm 112-113","isRest":false,"finishesBook":false},{"id":"y1-113","week":23,"day":3,"book":"James","testament":"NT","genre":"Epistle","ref":"James 3:5-12","whole":false,"companion":"Psalm 114-115","isRest":false,"finishesBook":false},{"id":"y1-114","week":23,"day":4,"book":"James","testament":"NT","genre":"Epistle","ref":"James 3:13-18","whole":false,"companion":"Psalm 116-117","isRest":false,"finishesBook":false},{"id":"y1-115","week":23,"day":5,"book":"James","testament":"NT","genre":"Epistle","ref":"James 3","whole":true,"companion":"Psalm 118","isRest":false,"finishesBook":false},{"id":"y1-116","week":24,"day":1,"book":"James","testament":"NT","genre":"Epistle","ref":"James 4","whole":true,"companion":"Psalm 119:1-32","isRest":false,"finishesBook":false},{"id":"y1-117","week":24,"day":2,"book":"James","testament":"NT","genre":"Epistle","ref":"James 4:1-10","whole":false,"companion":"Psalm 119:33-64","isRest":false,"finishesBook":false},{"id":"y1-118","week":24,"day":3,"book":"James","testament":"NT","genre":"Epistle","ref":"James 4:11-12","whole":false,"companion":"Psalm 119:65-96","isRest":false,"finishesBook":false},{"id":"y1-119","week":24,"day":4,"book":"James","testament":"NT","genre":"Epistle","ref":"James 4:13-17","whole":false,"companion":"Psalm 119:97-152","isRest":false,"finishesBook":false},{"id":"y1-120","week":24,"day":5,"book":"James","testament":"NT","genre":"Epistle","ref":"James 4","whole":true,"companion":"Psalm 119:153-176","isRest":false,"finishesBook":false},{"id":"y1-121","week":25,"day":1,"book":"James","testament":"NT","genre":"Epistle","ref":"James 5","whole":true,"companion":"Psalm 120","isRest":false,"finishesBook":false},{"id":"y1-122","week":25,"day":2,"book":"James","testament":"NT","genre":"Epistle","ref":"James 5:1-6","whole":false,"companion":"Psalm 121-122","isRest":false,"finishesBook":false},{"id":"y1-123","week":25,"day":3,"book":"James","testament":"NT","genre":"Epistle","ref":"James 5:7-12","whole":false,"companion":"Psalm 123-124","isRest":false,"finishesBook":false},{"id":"y1-124","week":25,"day":4,"book":"James","testament":"NT","genre":"Epistle","ref":"James 5:13-18","whole":false,"companion":"Psalm 125-126","isRest":false,"finishesBook":false},{"id":"y1-125","week":25,"day":5,"book":"James","testament":"NT","genre":"Epistle","ref":"James 5:19-20","whole":false,"companion":"Psalm 127-128","isRest":false,"finishesBook":true},{"id":"y1-126","week":26,"day":1,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 1-2","whole":false,"companion":"Psalm 129","isRest":false,"finishesBook":false},{"id":"y1-127","week":26,"day":2,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 3-4","whole":false,"companion":"Psalm 130","isRest":false,"finishesBook":false},{"id":"y1-128","week":26,"day":3,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 5-6","whole":false,"companion":"Psalm 131","isRest":false,"finishesBook":false},{"id":"y1-129","week":26,"day":4,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 7-8","whole":false,"companion":"Psalm 132","isRest":false,"finishesBook":false},{"id":"y1-130","week":26,"day":5,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 9-10","whole":false,"companion":"Psalm 133","isRest":false,"finishesBook":false},{"id":"y1-131","week":27,"day":1,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 11-12","whole":false,"companion":"Psalm 134","isRest":false,"finishesBook":false},{"id":"y1-132","week":27,"day":2,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 13-14","whole":false,"companion":"Psalm 135","isRest":false,"finishesBook":false},{"id":"y1-133","week":27,"day":3,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 15-16","whole":false,"companion":"Psalm 136","isRest":false,"finishesBook":false},{"id":"y1-134","week":27,"day":4,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 17-18","whole":false,"companion":"Psalm 137","isRest":false,"finishesBook":false},{"id":"y1-135","week":27,"day":5,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 19-20","whole":false,"companion":"Psalm 138","isRest":false,"finishesBook":false},{"id":"y1-136","week":28,"day":1,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 21-22","whole":false,"companion":"Psalm 139","isRest":false,"finishesBook":false},{"id":"y1-137","week":28,"day":2,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 23-24","whole":false,"companion":"Psalm 140","isRest":false,"finishesBook":false},{"id":"y1-138","week":28,"day":3,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 24-25","whole":false,"companion":"Psalm 141","isRest":false,"finishesBook":false},{"id":"y1-139","week":28,"day":4,"book":"Leviticus","testament":"OT","genre":"Law","ref":"Leviticus 26-27","whole":false,"companion":"Psalm 142","isRest":false,"finishesBook":true},{"id":"y1-140","week":28,"day":5,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 1-2","whole":false,"companion":"Psalm 143","isRest":false,"finishesBook":false},{"id":"y1-141","week":29,"day":1,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 3-4","whole":false,"companion":"Psalm 144","isRest":false,"finishesBook":false},{"id":"y1-142","week":29,"day":2,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 5-6","whole":false,"companion":"Psalm 145","isRest":false,"finishesBook":false},{"id":"y1-143","week":29,"day":3,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 7-8","whole":false,"companion":"Psalm 146","isRest":false,"finishesBook":false},{"id":"y1-144","week":29,"day":4,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 9-10","whole":false,"companion":"Psalm 147","isRest":false,"finishesBook":false},{"id":"y1-145","week":29,"day":5,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 11-12","whole":false,"companion":"Psalm 148","isRest":false,"finishesBook":false},{"id":"y1-146","week":30,"day":1,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 13-14","whole":false,"companion":"Psalm 149","isRest":false,"finishesBook":false},{"id":"y1-147","week":30,"day":2,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 15-16","whole":false,"companion":"Psalm 150","isRest":false,"finishesBook":false},{"id":"y1-148","week":30,"day":3,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 17-18","whole":false,"companion":"Proverbs 1","isRest":false,"finishesBook":false},{"id":"y1-149","week":30,"day":4,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 19-20","whole":false,"companion":"Proverbs 2","isRest":false,"finishesBook":false},{"id":"y1-150","week":30,"day":5,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 21-22","whole":false,"companion":"Proverbs 3","isRest":false,"finishesBook":false},{"id":"y1-151","week":31,"day":1,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 23-24","whole":false,"companion":"Proverbs 4","isRest":false,"finishesBook":false},{"id":"y1-152","week":31,"day":2,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 25-27","whole":false,"companion":"Proverbs 5","isRest":false,"finishesBook":false},{"id":"y1-153","week":31,"day":3,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 28-30","whole":false,"companion":"Proverbs 6","isRest":false,"finishesBook":false},{"id":"y1-154","week":31,"day":4,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 31-33","whole":false,"companion":"Proverbs 7","isRest":false,"finishesBook":false},{"id":"y1-155","week":31,"day":5,"book":"Numbers","testament":"OT","genre":"Narrative","ref":"Numbers 34-36","whole":false,"companion":"Proverbs 8","isRest":false,"finishesBook":true},{"id":"y1-156","week":32,"day":1,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 1","whole":true,"companion":"Proverbs 9","isRest":false,"finishesBook":false},{"id":"y1-157","week":32,"day":2,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 1:1-5","whole":false,"companion":"Proverbs 10","isRest":false,"finishesBook":false},{"id":"y1-158","week":32,"day":3,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 1:6-10","whole":false,"companion":"Proverbs 11","isRest":false,"finishesBook":false},{"id":"y1-159","week":32,"day":4,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 1:11-17","whole":false,"companion":"Proverbs 12","isRest":false,"finishesBook":false},{"id":"y1-160","week":32,"day":5,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 1:18-24","whole":false,"companion":"Proverbs 13","isRest":false,"finishesBook":false},{"id":"y1-161","week":33,"day":1,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 2","whole":true,"companion":"Proverbs 14","isRest":false,"finishesBook":false},{"id":"y1-162","week":33,"day":2,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 2:1-10","whole":false,"companion":"Proverbs 15","isRest":false,"finishesBook":false},{"id":"y1-163","week":33,"day":3,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 2:11-14","whole":false,"companion":"Proverbs 16","isRest":false,"finishesBook":false},{"id":"y1-164","week":33,"day":4,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 2:15-16","whole":false,"companion":"Proverbs 17","isRest":false,"finishesBook":false},{"id":"y1-165","week":33,"day":5,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 2:17-21","whole":false,"companion":"Proverbs 18","isRest":false,"finishesBook":false},{"id":"y1-166","week":34,"day":1,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 3","whole":true,"companion":"Proverbs 19","isRest":false,"finishesBook":false},{"id":"y1-167","week":34,"day":2,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 3:1-9","whole":false,"companion":"Proverbs 20","isRest":false,"finishesBook":false},{"id":"y1-168","week":34,"day":3,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 3:10-14","whole":false,"companion":"Proverbs 21","isRest":false,"finishesBook":false},{"id":"y1-169","week":34,"day":4,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 3:15-18","whole":false,"companion":"Proverbs 22","isRest":false,"finishesBook":false},{"id":"y1-170","week":34,"day":5,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 3:19-29","whole":false,"companion":"Proverbs 23","isRest":false,"finishesBook":false},{"id":"y1-171","week":35,"day":1,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 4","whole":true,"companion":"Proverbs 24","isRest":false,"finishesBook":false},{"id":"y1-172","week":35,"day":2,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 4:1-7","whole":false,"companion":"Proverbs 25","isRest":false,"finishesBook":false},{"id":"y1-173","week":35,"day":3,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 4:8-11","whole":false,"companion":"Proverbs 26","isRest":false,"finishesBook":false},{"id":"y1-174","week":35,"day":4,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 4:12-20","whole":false,"companion":"Proverbs 27","isRest":false,"finishesBook":false},{"id":"y1-175","week":35,"day":5,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 4:21-31","whole":false,"companion":"Proverbs 28","isRest":false,"finishesBook":false},{"id":"y1-176","week":36,"day":1,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 5","whole":true,"companion":"Proverbs 29","isRest":false,"finishesBook":false},{"id":"y1-177","week":36,"day":2,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 5:1-6","whole":false,"companion":"Proverbs 30","isRest":false,"finishesBook":false},{"id":"y1-178","week":36,"day":3,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 5:7-13","whole":false,"companion":"Proverbs 31","isRest":false,"finishesBook":false},{"id":"y1-179","week":36,"day":4,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 5:13-14","whole":false,"companion":"Psalm 1","isRest":false,"finishesBook":false},{"id":"y1-180","week":36,"day":5,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 5:16-26","whole":false,"companion":"Psalm 2","isRest":false,"finishesBook":false},{"id":"y1-181","week":37,"day":1,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 6","whole":true,"companion":"Psalm 3","isRest":false,"finishesBook":false},{"id":"y1-182","week":37,"day":2,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 6:1-5","whole":false,"companion":"Psalm 4","isRest":false,"finishesBook":false},{"id":"y1-183","week":37,"day":3,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 6:6-10","whole":false,"companion":"Psalm 5","isRest":false,"finishesBook":false},{"id":"y1-184","week":37,"day":4,"book":"Galatians","testament":"NT","genre":"Epistle","ref":"Galatians 6:11-18","whole":false,"companion":"Psalm 6","isRest":false,"finishesBook":true},{"id":"y1-185","week":37,"day":5,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 7","isRest":true},{"id":"y1-186","week":38,"day":1,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 1–2","whole":false,"companion":"Psalm 8","isRest":false,"finishesBook":false},{"id":"y1-187","week":38,"day":2,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 3–4","whole":false,"companion":"Psalm 9","isRest":false,"finishesBook":false},{"id":"y1-188","week":38,"day":3,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 5–6","whole":false,"companion":"Psalm 10","isRest":false,"finishesBook":false},{"id":"y1-189","week":38,"day":4,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 7–8","whole":false,"companion":"Psalm 11","isRest":false,"finishesBook":false},{"id":"y1-190","week":38,"day":5,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 9–10","whole":false,"companion":"Psalm 12","isRest":false,"finishesBook":false},{"id":"y1-191","week":39,"day":1,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 11–12","whole":false,"companion":"Psalm 13","isRest":false,"finishesBook":false},{"id":"y1-192","week":39,"day":2,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 13–14","whole":false,"companion":"Psalm 14","isRest":false,"finishesBook":false},{"id":"y1-193","week":39,"day":3,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 15–16","whole":false,"companion":"Psalm 15","isRest":false,"finishesBook":false},{"id":"y1-194","week":39,"day":4,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 17–18","whole":false,"companion":"Psalm 16","isRest":false,"finishesBook":false},{"id":"y1-195","week":39,"day":5,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 19–20","whole":false,"companion":"Psalm 17","isRest":false,"finishesBook":false},{"id":"y1-196","week":40,"day":1,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 21–22","whole":false,"companion":"Psalm 18","isRest":false,"finishesBook":false},{"id":"y1-197","week":40,"day":2,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 23–24","whole":false,"companion":"Psalm 19","isRest":false,"finishesBook":false},{"id":"y1-198","week":40,"day":3,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 25","whole":false,"companion":"Psalm 20","isRest":false,"finishesBook":false},{"id":"y1-199","week":40,"day":4,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 26","whole":false,"companion":"Psalm 21","isRest":false,"finishesBook":false},{"id":"y1-200","week":40,"day":5,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 27","whole":false,"companion":"Psalm 22","isRest":false,"finishesBook":false},{"id":"y1-201","week":41,"day":1,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 28","whole":false,"companion":"Psalm 23","isRest":false,"finishesBook":false},{"id":"y1-202","week":41,"day":2,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 29","whole":false,"companion":"Psalm 24","isRest":false,"finishesBook":false},{"id":"y1-203","week":41,"day":3,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 30","whole":false,"companion":"Psalm 25","isRest":false,"finishesBook":false},{"id":"y1-204","week":41,"day":4,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 31","whole":false,"companion":"Psalm 26","isRest":false,"finishesBook":false},{"id":"y1-205","week":41,"day":5,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 32","whole":false,"companion":"Psalm 27","isRest":false,"finishesBook":false},{"id":"y1-206","week":42,"day":1,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 33","whole":false,"companion":"Psalm 28","isRest":false,"finishesBook":false},{"id":"y1-207","week":42,"day":2,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 34","whole":false,"companion":"Psalm 29","isRest":false,"finishesBook":false},{"id":"y1-208","week":42,"day":3,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 35","whole":false,"companion":"Psalm 30","isRest":false,"finishesBook":false},{"id":"y1-209","week":42,"day":4,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 36","whole":false,"companion":"Psalm 31","isRest":false,"finishesBook":false},{"id":"y1-210","week":42,"day":5,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 37","whole":false,"companion":"Psalm 32","isRest":false,"finishesBook":false},{"id":"y1-211","week":43,"day":1,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 38","whole":false,"companion":"Psalm 33","isRest":false,"finishesBook":false},{"id":"y1-212","week":43,"day":2,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 39","whole":false,"companion":"Psalm 34","isRest":false,"finishesBook":false},{"id":"y1-213","week":43,"day":3,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 40","whole":false,"companion":"Psalm 35","isRest":false,"finishesBook":false},{"id":"y1-214","week":43,"day":4,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 41","whole":false,"companion":"Psalm 36","isRest":false,"finishesBook":false},{"id":"y1-215","week":43,"day":5,"book":"Job","testament":"OT","genre":"Poetry / Wisdom","ref":"Job 42","whole":false,"companion":"Psalm 37","isRest":false,"finishesBook":true},{"id":"y1-216","week":44,"day":1,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 1-2","whole":false,"companion":"Psalm 38","isRest":false,"finishesBook":false},{"id":"y1-217","week":44,"day":2,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 1:1–15","whole":false,"companion":"Psalm 39","isRest":false,"finishesBook":false},{"id":"y1-218","week":44,"day":3,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 1:16–32","whole":false,"companion":"Psalm 40","isRest":false,"finishesBook":false},{"id":"y1-219","week":44,"day":4,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 2:1–11","whole":false,"companion":"Psalm 41","isRest":false,"finishesBook":false},{"id":"y1-220","week":44,"day":5,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 2:12-29","whole":false,"companion":"Psalm 42","isRest":false,"finishesBook":false},{"id":"y1-221","week":45,"day":1,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 3-4","whole":false,"companion":"Psalm 43","isRest":false,"finishesBook":false},{"id":"y1-222","week":45,"day":2,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 3:1-20","whole":false,"companion":"Psalm 44","isRest":false,"finishesBook":false},{"id":"y1-223","week":45,"day":3,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 3:21–31","whole":false,"companion":"Psalm 45","isRest":false,"finishesBook":false},{"id":"y1-224","week":45,"day":4,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 4:1-12","whole":false,"companion":"Psalm 46","isRest":false,"finishesBook":false},{"id":"y1-225","week":45,"day":5,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 4:13-25","whole":false,"companion":"Psalm 47","isRest":false,"finishesBook":false},{"id":"y1-226","week":46,"day":1,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 5-7","whole":false,"companion":"Psalm 48","isRest":false,"finishesBook":false},{"id":"y1-227","week":46,"day":2,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 5","whole":false,"companion":"Psalm 49","isRest":false,"finishesBook":false},{"id":"y1-228","week":46,"day":3,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 6","whole":false,"companion":"Psalm 50","isRest":false,"finishesBook":false},{"id":"y1-229","week":46,"day":4,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 7:1-6","whole":false,"companion":"Psalm 51","isRest":false,"finishesBook":false},{"id":"y1-230","week":46,"day":5,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 7:7-25","whole":false,"companion":"Psalm 52","isRest":false,"finishesBook":false},{"id":"y1-231","week":47,"day":1,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 8-9","whole":false,"companion":"Psalm 53","isRest":false,"finishesBook":false},{"id":"y1-232","week":47,"day":2,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 8:1-17","whole":false,"companion":"Psalm 54","isRest":false,"finishesBook":false},{"id":"y1-233","week":47,"day":3,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 8:18-30","whole":false,"companion":"Psalm 55","isRest":false,"finishesBook":false},{"id":"y1-234","week":47,"day":4,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 8:31-39","whole":false,"companion":"Psalm 56","isRest":false,"finishesBook":false},{"id":"y1-235","week":47,"day":5,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 9","whole":false,"companion":"Psalm 57","isRest":false,"finishesBook":false},{"id":"y1-236","week":48,"day":1,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 10-12","whole":false,"companion":"Psalm 58","isRest":false,"finishesBook":false},{"id":"y1-237","week":48,"day":2,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 10","whole":false,"companion":"Psalm 59","isRest":false,"finishesBook":false},{"id":"y1-238","week":48,"day":3,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 11","whole":false,"companion":"Psalm 60","isRest":false,"finishesBook":false},{"id":"y1-239","week":48,"day":4,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 12:1-8","whole":false,"companion":"Psalm 61","isRest":false,"finishesBook":false},{"id":"y1-240","week":48,"day":5,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 12:9-21","whole":false,"companion":"Psalm 62","isRest":false,"finishesBook":false},{"id":"y1-241","week":49,"day":1,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 13","whole":false,"companion":"Psalm 63","isRest":false,"finishesBook":false},{"id":"y1-242","week":49,"day":2,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 14","whole":false,"companion":"Psalm 64","isRest":false,"finishesBook":false},{"id":"y1-243","week":49,"day":3,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 15:1-13","whole":false,"companion":"Psalm 65","isRest":false,"finishesBook":false},{"id":"y1-244","week":49,"day":4,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 15:14-33","whole":false,"companion":"Psalm 66","isRest":false,"finishesBook":false},{"id":"y1-245","week":49,"day":5,"book":"Romans","testament":"NT","genre":"Epistle","ref":"Romans 16","whole":false,"companion":"Psalm 67","isRest":false,"finishesBook":true},{"id":"y1-246","week":50,"day":1,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 68","isRest":true},{"id":"y1-247","week":50,"day":2,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 69","isRest":true},{"id":"y1-248","week":50,"day":3,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 70","isRest":true},{"id":"y1-249","week":50,"day":4,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 71","isRest":true},{"id":"y1-250","week":50,"day":5,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 72","isRest":true},{"id":"y1-251","week":51,"day":1,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 73","isRest":true},{"id":"y1-252","week":51,"day":2,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 74","isRest":true},{"id":"y1-253","week":51,"day":3,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 75","isRest":true},{"id":"y1-254","week":51,"day":4,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 76","isRest":true},{"id":"y1-255","week":51,"day":5,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 77","isRest":true},{"id":"y1-256","week":52,"day":1,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 78","isRest":true},{"id":"y1-257","week":52,"day":2,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 79","isRest":true},{"id":"y1-258","week":52,"day":3,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 80","isRest":true},{"id":"y1-259","week":52,"day":4,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 81","isRest":true},{"id":"y1-260","week":52,"day":5,"book":null,"testament":null,"genre":null,"ref":null,"whole":false,"companion":"Psalm 82","isRest":true}]
+;
+
+  // ---------------- weeks ----------------
+  const WEEKS = [];
+  for(let i=0; i<PLAN.length; i+=5){ WEEKS.push(PLAN.slice(i, i+5)); }
+
+  // group consecutive same-book runs (and rest runs) for the full-list accordion and the trail
+  function groupKey(d){ return d.isRest ? 'REST' : d.book; }
+  const GROUPS = [];
+  PLAN.forEach(d=>{
+    const key = groupKey(d);
+    const last = GROUPS[GROUPS.length-1];
+    if(last && last.key === key){ last.days.push(d); }
+    else{ GROUPS.push({ key, isRest: d.isRest, days:[d] }); }
+  });
+
+  // ---------------- state ----------------
+  let completed = new Set();
+  let viewedWeek = 0;
+  const STORAGE_KEY = 'read-together-progress-y1';
+
+  function loadProgress(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ completed = new Set(JSON.parse(raw)); }
+    }catch(e){ completed = new Set(); }
+    render();
+  }
+  function saveProgress(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed])); }
+    catch(e){ console.error('Could not save progress', e); }
+  }
+  function toggleDay(id){
+    if(completed.has(id)) completed.delete(id); else completed.add(id);
+    saveProgress();
+    render();
+  }
+
+  // ---------------- derived values ----------------
+  function nextUpId(){
+    for(const d of PLAN){ if(!completed.has(d.id)) return d.id; }
+    return null;
+  }
+  function currentStreakFromStart(){
+    let n = 0;
+    for(const d of PLAN){ if(completed.has(d.id)) n++; else break; }
+    return n;
+  }
+  function currentBookName(){
+    const nid = nextUpId();
+    if(nid === null) return "Year 1 Complete";
+    const d = PLAN.find(x=>x.id===nid);
+    return d.isRest ? "Rest Week" : d.book;
+  }
+  function currentWeekIndex(){
+    const nid = nextUpId();
+    if(nid === null) return WEEKS.length - 1;
+    const idx = PLAN.findIndex(d=>d.id===nid);
+    return Math.floor(idx / 5);
+  }
+
+  const checkSvg = `<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.2 11.7L13 4.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  // ---------------- render: weekly strip ----------------
+  function renderWeek(){
+    const curWeek = currentWeekIndex();
+    const week = WEEKS[viewedWeek] || [];
+    const nid = nextUpId();
+
+    document.getElementById('weekTitle').textContent = `Week ${viewedWeek + 1} of ${WEEKS.length}`;
+
+    const sub = document.getElementById('weekSubhint');
+    if(viewedWeek < curWeek) sub.textContent = "You've finished this week — browsing back through it.";
+    else if(viewedWeek > curWeek) sub.textContent = "Looking ahead — nothing here is due yet.";
+    else sub.textContent = "Check off each reading whenever you get to it.";
+
+    document.getElementById('weekPrevBtn').disabled = viewedWeek === 0;
+    document.getElementById('weekNextBtn').disabled = viewedWeek === WEEKS.length - 1;
+    document.getElementById('jumpCurrentBtn').style.visibility = (viewedWeek === curWeek) ? 'hidden' : 'visible';
+
+    const grid = document.getElementById('weekGrid');
+    grid.innerHTML = '';
+
+    if(week.length === 0){
+      grid.innerHTML = `<div class="all-caught-up">You've read every day in Year 1. Well done — Year 2 will pick up right where this leaves off.</div>`;
+      return;
+    }
+
+    week.forEach((d, slot)=>{
+      const isChecked = completed.has(d.id);
+      const isNext = d.id === nid;
+      const card = document.createElement('div');
+      card.className = 'day-card' + (isChecked ? ' checked' : '') + (isNext ? ' next' : '') + (d.isRest ? ' rest' : '');
+      if(d.isRest){
+        card.innerHTML = `
+          <div class="day-card-text">
+            <div class="day-card-label">Day ${slot+1}${isNext ? ' · Up Next' : ''}</div>
+            <div class="day-card-book">Rest Week</div>
+            <div class="day-card-ref">Rest &amp; Reflect</div>
+            <div class="day-card-companion">${d.companion}</div>
+          </div>
+          <button class="day-card-check" data-id="${d.id}">${checkSvg}<span class="label-text">${isChecked ? ' Read' : 'Mark Read'}</span></button>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="day-card-text">
+            <div class="day-card-label">Day ${slot+1}${isNext ? ' · Up Next' : ''}</div>
+            <div class="day-card-book">${d.book}</div>
+            <div class="day-card-ref">${d.ref}</div>
+            <div class="day-card-companion">${d.companion}</div>
+            ${d.whole ? '<span class="whole-tag">Whole Chapter</span>' : ''}
+          </div>
+          <button class="day-card-check" data-id="${d.id}">${checkSvg}<span class="label-text">${isChecked ? ' Read' : 'Mark Read'}</span></button>
+        `;
+      }
+      grid.appendChild(card);
+    });
+
+    grid.querySelectorAll('.day-card-check').forEach(btn=>{
+      btn.addEventListener('click', ()=> toggleDay(btn.dataset.id));
+    });
+  }
+
+  document.getElementById('weekPrevBtn').addEventListener('click', ()=>{ if(viewedWeek>0){ viewedWeek--; renderWeek(); } });
+  document.getElementById('weekNextBtn').addEventListener('click', ()=>{ if(viewedWeek<WEEKS.length-1){ viewedWeek++; renderWeek(); } });
+  document.getElementById('jumpCurrentBtn').addEventListener('click', ()=>{ viewedWeek = currentWeekIndex(); renderWeek(); });
+
+  // ---------------- render: progress card ----------------
+  function renderProgress(){
+    const done = completed.size;
+    const total = PLAN.length;
+    const pct = total ? Math.round((done/total)*100) : 0;
+    document.getElementById('ringPct').textContent = pct + '%';
+    const circumference = 213.6;
+    document.getElementById('ringFg').setAttribute('stroke-dashoffset', circumference - (circumference*pct/100));
+    document.getElementById('statDone').textContent = done;
+    document.getElementById('statStreak').textContent = currentStreakFromStart();
+    document.getElementById('statBook').textContent = currentBookName();
+  }
+
+  // ---------------- render: trail (this year's books + rest weeks) ----------------
+  function renderTrail(){
+    const track = document.getElementById('trailTrack');
+    track.innerHTML = '';
+    const nid = nextUpId();
+    const curGroup = (()=>{
+      if(nid === null) return GROUPS[GROUPS.length-1];
+      return GROUPS.find(g => g.days.some(d=>d.id===nid));
+    })();
+
+    GROUPS.forEach((g, i)=>{
+      const doneCount = g.days.filter(d=>completed.has(d.id)).length;
+      const isDone = doneCount === g.days.length;
+      const isCurrent = g === curGroup;
+      const label = g.isRest ? 'Rest' : g.key;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'trail-node-wrap';
+      const btn = document.createElement('button');
+      btn.className = 'trail-node' + (isCurrent ? ' current' : '');
+      btn.innerHTML = `
+        <div class="chevron ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''} ${g.isRest ? 'rest' : ''}">
+          ${isDone ? checkSvg : ''}
+        </div>
+        <div class="trail-node-name">${label}</div>
+        ${isCurrent ? `<div class="here-pin">You are here</div>` : `<div class="here-pin" style="visibility:hidden">.</div>`}
+      `;
+      btn.addEventListener('click', ()=>{
+        const el = document.getElementById('book-group-'+i);
+        if(el){ el.querySelector('.book-toggle').setAttribute('aria-expanded','true'); el.querySelector('.day-list').classList.add('open'); el.scrollIntoView({behavior:'smooth', block:'start'}); }
+      });
+      wrap.appendChild(btn);
+      if(i < GROUPS.length - 1){
+        const dash = document.createElement('div');
+        dash.className = 'trail-dash';
+        dash.innerHTML = `<svg width="30" height="10" viewBox="0 0 30 10"><path d="M0,5 Q7.5,1 15,5 T30,5" fill="none" stroke="#335E53" stroke-width="2" stroke-linecap="round"/></svg>`;
+        wrap.appendChild(dash);
+      }
+      track.appendChild(wrap);
+    });
+  }
+
+  // ---------------- render: full list ----------------
+  function renderList(){
+    const container = document.getElementById('planList');
+    container.innerHTML = '';
+    GROUPS.forEach((g, i)=>{
+      const doneCount = g.days.filter(d=>completed.has(d.id)).length;
+      const testament = g.isRest ? null : g.days[0].testament;
+
+      const group = document.createElement('div');
+      group.className = 'book-group';
+      group.id = 'book-group-'+i;
+
+      const label = g.isRest ? `Rest Week — Week ${g.days[0].week}` : g.key;
+      const dotClass = g.isRest ? 'rest' : (testament === 'OT' ? 'ot' : 'nt');
+
+      const toggle = document.createElement('button');
+      toggle.className = 'book-toggle';
+      toggle.setAttribute('aria-expanded','false');
+      toggle.innerHTML = `
+        <div class="book-toggle-left">
+          <span class="testament-dot ${dotClass}"></span>
+          <span class="book-toggle-name">${label}</span>
+        </div>
+        <span class="book-toggle-meta">${doneCount}/${g.days.length}</span>
+        <span class="book-toggle-caret"><svg viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#1F3345" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      `;
+
+      const list = document.createElement('ul');
+      list.className = 'day-list';
+      g.days.forEach(d=>{
+        const li = document.createElement('li');
+        li.className = 'day-row' + (d.whole ? ' whole' : '');
+        const isChecked = completed.has(d.id);
+        const refText = d.isRest ? 'Rest & Reflect' : d.ref;
+        li.innerHTML = `
+          <button class="day-check ${isChecked ? 'checked' : ''}" data-id="${d.id}">${checkSvg}</button>
+          <span class="day-row-ref">${refText}</span>
+          <span class="day-row-companion">${d.companion}</span>
+        `;
+        list.appendChild(li);
+      });
+
+      toggle.addEventListener('click', ()=>{
+        const open = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+        list.classList.toggle('open');
+      });
+
+      group.appendChild(toggle);
+      group.appendChild(list);
+      container.appendChild(group);
+    });
+
+    container.querySelectorAll('.day-check').forEach(btn=>{
+      btn.addEventListener('click', ()=> toggleDay(btn.dataset.id));
+    });
+
+    // auto-open the group containing the next unread day
+    const nid = nextUpId();
+    if(nid !== null){
+      const gi = GROUPS.findIndex(g => g.days.some(d=>d.id===nid));
+      if(gi >= 0){
+        const el = document.getElementById('book-group-'+gi);
+        if(el){ el.querySelector('.book-toggle').setAttribute('aria-expanded','true'); el.querySelector('.day-list').classList.add('open'); }
+      }
+    }
+  }
+
+  // ---------------- invite ----------------
+  function generateInvite(){
+    const templates = [
+      `A few of us at Buck Run are reading through the Bible together this year — book by book, no rushing. Want to read with me?`,
+      `I started Read Together with our church — a year-long Bible reading plan — and I'd love to have someone reading alongside me. Want to join?`,
+      `Buck Run's put together a Bible reading plan called Read Together and I'm going through it — thought of you. Want to read together and check in on it?`
+    ];
+    document.getElementById('inviteText').value = templates[Math.floor(Math.random()*templates.length)];
+  }
+  document.getElementById('reshuffleBtn').addEventListener('click', generateInvite);
+  document.getElementById('copyBtn').addEventListener('click', async ()=>{
+    const ta = document.getElementById('inviteText');
+    try{
+      await navigator.clipboard.writeText(ta.value);
+      const note = document.getElementById('copiedNote');
+      note.textContent = 'Copied to clipboard.';
+      setTimeout(()=> note.textContent = '', 2000);
+    }catch(e){ ta.select(); document.execCommand('copy'); }
+  });
+
+  // ---------------- init ----------------
+  let initialized = false;
+  function render(){
+    if(!initialized){ viewedWeek = currentWeekIndex(); initialized = true; }
+    renderWeek();
+    renderProgress();
+    renderTrail();
+    renderList();
+  }
+
+  generateInvite();
+  loadProgress();
+})();
+</script>
+</body>
+</html>
