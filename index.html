@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Read Together — Buck Run Baptist Church</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com https://use.typekit.net https://p.typekit.net; font-src https://fonts.gstatic.com https://use.typekit.net https://p.typekit.net; img-src data: https://p.typekit.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta name="description" content="Buck Run Baptist Church's Bible reading plan. Read the whole Bible together, one week at a time.">
+<meta name="theme-color" content="#080D12">
+<meta property="og:title" content="Read Together — Buck Run Baptist Church">
+<meta property="og:description" content="Read the whole Bible together, one week at a time.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23080D12'/%3E%3Cg transform='translate%2813.6%2C14.5%29 scale%280.31%29' fill='%23EFEDE3'%3E%3Cpath d='M106.32%2C230.22l-12.41-11.21c-17.4-15.71-45.88-18.72-84.66-8.95l-9.25%2C2.33v-65.98l106.32-54.62v138.43ZM49.19%2C189.61c16.47%2C0%2C30.58%2C3.19%2C42.26%2C9.57v-83.04L14.87%2C155.48v38.02c12.38-2.6%2C23.83-3.89%2C34.33-3.89Z'/%3E%3Cpath d='M128.27%2C230.22V91.79l106.32%2C54.62v65.98l-9.25-2.33c-38.78-9.77-67.26-6.75-84.66%2C8.95l-12.41%2C11.21ZM143.13%2C116.14v83.04c19.12-10.44%2C44.77-12.35%2C76.59-5.68v-38.02l-76.59-39.35Z'/%3E%3Cpath d='M234.59%2C120.08l-117.29-60.26L0%2C120.08v-59.82L117.29%2C0l117.29%2C60.26v59.82ZM117.29%2C43.11l102.43%2C52.62v-26.4L117.29%2C16.71%2C14.87%2C69.33v26.4l102.43-52.62Z'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/qxx3pod.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -113,6 +120,8 @@
   .si-btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
   .si-btn.primary:hover{filter:brightness(.93);}
   .si-skip{background:none; border:0; font:inherit; font-size:16px; color:#4a5560; text-decoration:underline; cursor:pointer; padding:10px; margin-top:4px;}
+  dialog.signin[open]{display:block; position:fixed; left:0; right:0; bottom:0; z-index:200;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} *{animation-duration:.01ms!important; transition-duration:.01ms!important;} }
   .si-note{font-size:14px; color:#4a5560; margin:14px 0 0;}
 
   /* ---------- hero / weekly strip (mobile-first: stacked) ---------- */
@@ -314,6 +323,7 @@
 </style>
 </head>
 <body>
+<noscript><p style="padding:24px;font:18px/1.5 Georgia,serif">Read Together needs JavaScript turned on to work. Please turn it on in your browser settings and reload this page.</p></noscript>
 
 <header class="topbar">
   <div class="wrap">
@@ -462,12 +472,12 @@
         <div class="res-card">
           <h3>Read Together Guides</h3>
           <p>Use the Read Together Plan to read the Bible with others. Weekly discussion guides can be used to walk through books of the Bible with other church members, family members, or those with whom you are sharing the gospel.</p>
-          <span class="res-placeholder">Add guides link</span>
+          <span class="res-placeholder">Coming soon</span>
         </div>
         <div class="res-card">
           <h3>How to Read This Plan</h3>
           <p>Learn more about Read Together and how this plan is designed to help you make disciples.</p>
-          <span class="res-placeholder">Add reading guide link</span>
+          <span class="res-placeholder">Coming soon</span>
         </div>
       </div>
     </div>
@@ -550,24 +560,34 @@
   // sends { id, name, completed } after each change.
   const SYNC_URL = 'https://script.google.com/macros/s/AKfycbziXMrxKyCTDo9TL_Ahnq-rzRIVVjLgqqk2n85EZoVgp7i_lP4Dj9DO_9w6e9NJdnQ/exec';
   const dirtyKey = ()=> progressKey() + ':dirty';
+  const ID_OK = /^y\d+-\d{3}$/;
+  // Returns { ok:true, list:[...] } when the server answered, { ok:false } when it could not be reached.
+  // (Telling "no progress yet" apart from "could not reach the server" matters: see syncDown.)
   async function pullRemote(id){
-    if(!SYNC_URL) return null;
+    if(!SYNC_URL) return { ok:false };
     try{
       const r = await fetch(SYNC_URL + '?action=load&id=' + encodeURIComponent(id));
       const j = await r.json();
-      return (j && Array.isArray(j.completed)) ? j.completed : null;
-    }catch(e){ return null; }
+      if(!j || !Array.isArray(j.completed)) return { ok:false };
+      return { ok:true, list:j.completed.filter(x => typeof x === 'string' && ID_OK.test(x)).slice(0, 2000) };
+    }catch(e){ return { ok:false }; }
   }
+  const flagKey = (n)=> progressKey() + ':' + n;
+  const getFlag = (n)=>{ try{ return !!localStorage.getItem(flagKey(n)); }catch(e){ return false; } };
+  const setFlag = (n,on)=>{ try{ on ? localStorage.setItem(flagKey(n),'1') : localStorage.removeItem(flagKey(n)); }catch(e){} };
+  let changeCount = 0;     // bumps on every check/uncheck, so we can tell if the reader changed something mid-sync
   let pushTimer = null;
   function pushRemote(){
     if(!SYNC_URL || !profile) return;
-    try{ localStorage.setItem(dirtyKey(), '1'); }catch(e){}
+    setFlag('dirty', true);
     clearTimeout(pushTimer);
     pushTimer = setTimeout(doPush, 800); // wait for a pause in checking boxes
   }
   async function doPush(){
     if(!profile) return;
-    const key = dirtyKey();
+    // Never overwrite the server before we have seen what it holds.
+    if(getFlag('needspull')){ await syncDown(); return; }
+    const key = flagKey('dirty');
     try{
       const r = await fetch(SYNC_URL, {
         method:'POST', redirect:'follow',
@@ -576,27 +596,40 @@
       });
       const j = await r.json();
       if(j && j.ok){ try{ localStorage.removeItem(key); }catch(e){} }
-    }catch(e){ /* stays marked dirty; retried on next change or page load */ }
+    }catch(e){ /* stays marked dirty; retried on next change, page load, or reconnect */ }
+  }
+  // Bring this phone up to date with the server without losing anything either side did.
+  async function syncDown(){
+    if(!profile || !SYNC_URL) return;
+    const startChanges = changeCount;
+    const r = await pullRemote(profile.id);
+    if(!r.ok) return;
+    if(changeCount !== startChanges || getFlag('dirty') || getFlag('needspull')){
+      r.list.forEach(id => completed.add(id));   // local edits exist: keep both sides' work
+      setFlag('needspull', false);
+      writeSet(progressKey(), completed);
+      render();
+      pushRemote();
+    }else{
+      completed = new Set(r.list);                // nothing local to protect: take the server's copy
+      writeSet(progressKey(), completed);
+      render();
+    }
   }
 
   async function loadProgress(){
-    try{ const p = localStorage.getItem(PROFILE_KEY); if(p) profile = JSON.parse(p); }catch(e){ profile = null; }
+    try{
+      const p = JSON.parse(localStorage.getItem(PROFILE_KEY) || 'null');
+      if(p && typeof p.id === 'string' && /^[ep]:/.test(p.id) && typeof p.display === 'string') profile = p;
+    }catch(e){ profile = null; }
     completed = readSet(progressKey());
     renderAccount();
     render();
-    // Signed in on a phone that may be behind: fetch the latest from the server.
-    if(profile && SYNC_URL){
-      let dirty = false;
-      try{ dirty = !!localStorage.getItem(dirtyKey()); }catch(e){}
-      if(dirty){ doPush(); return; }          // unsent local changes win
-      const remote = await pullRemote(profile.id);
-      if(remote){
-        completed = new Set(remote);
-        writeSet(progressKey(), completed);
-        render();
-      }
-    }
+    syncDown();   // signed in on a phone that may be behind: fetch the latest from the server
   }
+  // A tab left open for days is often stale: refresh when the reader comes back to it or reconnects.
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) syncDown(); });
+  window.addEventListener('online', ()=>{ syncDown(); });
   function saveProgress(){
     writeSet(progressKey(), completed);
     if(profile) pushRemote();
@@ -622,6 +655,7 @@
   }
 
   const dlg = document.getElementById('signinDialog');
+  function closeDlg(){ if(typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open'); }
   const stepEnter = document.getElementById('siStepEnter');
   const stepConfirm = document.getElementById('siStepConfirm');
   const stepSigned = document.getElementById('siStepSigned');
@@ -655,12 +689,12 @@
     }else{
       showStep('enter');
     }
-    if(!dlg.open) dlg.showModal();
+    if(!dlg.open){ if(typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open',''); }
   }
   document.getElementById('acctBtn').addEventListener('click', openAccount);
-  document.getElementById('siClose').addEventListener('click', ()=>dlg.close());
-  document.getElementById('siDone').addEventListener('click', ()=>dlg.close());
-  dlg.addEventListener('click', e=>{ if(e.target === dlg) dlg.close(); }); // tap outside to close
+  document.getElementById('siClose').addEventListener('click', ()=>closeDlg());
+  document.getElementById('siDone').addEventListener('click', ()=>closeDlg());
+  dlg.addEventListener('click', e=>{ if(e.target === dlg) closeDlg(); }); // tap outside to close
 
   siId.addEventListener('input', ()=>{
     // Phone numbers get the numeric keypad; emails get the @ keyboard.
@@ -686,16 +720,18 @@
     // Merge: anything already saved for this person + what was just checked off.
     const merged = readSet(progressKey());
     anon.forEach(id=>merged.add(id));
-    const remote = await pullRemote(profile.id);
-    if(remote) remote.forEach(id=>merged.add(id));
+    const r = await pullRemote(profile.id);
+    if(r.ok) r.list.forEach(id=>merged.add(id));
     completed = merged;
     writeSet(progressKey(), completed);
     try{ localStorage.removeItem(ANON_KEY); }catch(e){} // don't leave it for the next person on a shared phone
-    pushRemote();
+    if(r.ok) pushRemote();
+    else setFlag('needspull', true);   // couldn't reach the server: don't overwrite it; sync when we can
     renderAccount(); render();
-    document.getElementById('siSignedAs').textContent =
-      'Your progress is saved for ' + profile.display + '. To use another phone, type that same ' +
-      (profile.id[0] === 'e' ? 'email' : 'phone number') + ' there.';
+    document.getElementById('siSignedAs').textContent = r.ok
+      ? 'Your progress is saved for ' + profile.display + '. To use another phone, type that same ' +
+        (profile.id[0] === 'e' ? 'email' : 'phone number') + ' there.'
+      : "We couldn't reach the saving service just now. Your progress is safe on this phone and will sync when you're back online.";
     document.getElementById('siSignedTitle').textContent = "You're all set" + (profile.name ? ', ' + profile.name : '');
     showStep('signed');
   });
@@ -706,10 +742,11 @@
     completed = readSet(ANON_KEY);
     siId.value = ''; siName.value = '';
     renderAccount(); render();
-    dlg.close();
+    closeDlg();
   });
   function toggleDay(id){
     if(completed.has(id)) completed.delete(id); else completed.add(id);
+    changeCount++;
     saveProgress();
     render();
   }
@@ -783,7 +820,7 @@
             <div class="day-card-ref">Rest &amp; Reflect</div>
             <div class="day-card-companion">${d.companion}</div>
           </div>
-          <button class="day-card-check" data-id="${d.id}">${checkSvg}<span class="label-text">${isChecked ? ' Read' : 'Mark Read'}</span></button>
+          <button class="day-card-check" data-id="${d.id}" aria-pressed="${isChecked}" aria-label="${isChecked ? 'Read' : 'Mark as read'}: Rest and reflect">${checkSvg}<span class="label-text">${isChecked ? ' Read' : 'Mark Read'}</span></button>
         `;
       } else {
         card.innerHTML = `
@@ -794,7 +831,7 @@
             <div class="day-card-companion">${d.companion}</div>
             ${d.whole ? '<span class="whole-tag">Whole Chapter</span>' : ''}
           </div>
-          <button class="day-card-check" data-id="${d.id}">${checkSvg}<span class="label-text">${isChecked ? ' Read' : 'Mark Read'}</span></button>
+          <button class="day-card-check" data-id="${d.id}" aria-pressed="${isChecked}" aria-label="${isChecked ? 'Read' : 'Mark as read'}: ${d.ref}">${checkSvg}<span class="label-text">${isChecked ? ' Read' : 'Mark Read'}</span></button>
         `;
       }
       grid.appendChild(card);
@@ -811,7 +848,7 @@
 
   // ---------------- render: progress card ----------------
   function renderProgress(){
-    const done = completed.size;
+    const done = PLAN.reduce((n,d)=> n + (completed.has(d.id) ? 1 : 0), 0);
     const total = PLAN.length;
     const pct = total ? Math.round((done/total)*100) : 0;
     document.getElementById('ringPct').textContent = pct + '%';
@@ -902,7 +939,7 @@
         const isChecked = completed.has(d.id);
         const refText = d.isRest ? 'Rest & Reflect' : d.ref;
         li.innerHTML = `
-          <button class="day-check ${isChecked ? 'checked' : ''}" data-id="${d.id}">${checkSvg}</button>
+          <button class="day-check ${isChecked ? 'checked' : ''}" data-id="${d.id}" aria-pressed="${isChecked}" aria-label="${isChecked ? 'Read' : 'Mark as read'}: ${refText}">${checkSvg}</button>
           <span class="day-row-ref">${refText}</span>
           <span class="day-row-companion">${d.companion}</span>
         `;
@@ -944,7 +981,8 @@
       `I started Read Together with our church — a year-long Bible reading plan — and I'd love to have someone reading alongside me. Want to join?`,
       `Buck Run's put together a Bible reading plan called Read Together and I'm going through it — thought of you. Want to read together and check in on it?`
     ];
-    document.getElementById('inviteText').value = templates[Math.floor(Math.random()*templates.length)];
+    const link = /^https?:$/.test(location.protocol) ? location.origin + location.pathname.replace(/index\.html$/, '') : '';
+    document.getElementById('inviteText').value = templates[Math.floor(Math.random()*templates.length)] + (link ? '\n\n' + link : '');
   }
   document.getElementById('reshuffleBtn').addEventListener('click', generateInvite);
   document.getElementById('copyBtn').addEventListener('click', async ()=>{
@@ -964,6 +1002,9 @@
     // Rebuilding the page sections can collapse the page height and jump the view to the top,
     // so remember where the reader was and put them back exactly there.
     const y = window.scrollY;
+    const ae = document.activeElement;
+    const keepId = ae && ae.dataset && ae.dataset.id ? ae.dataset.id : null;
+    const keepSel = keepId ? (ae.classList.contains('day-check') ? '.day-check' : '.day-card-check') : null;
     const trail = document.querySelector('.trail-scroll');
     const trailX = trail ? trail.scrollLeft : 0;
     renderWeek();
@@ -973,6 +1014,7 @@
     const trailAfter = document.querySelector('.trail-scroll');
     if(trailAfter) trailAfter.scrollLeft = trailX;
     if(y > 0) window.scrollTo({ top:y, left:0, behavior:'instant' });
+    if(keepId){ const el = document.querySelector(keepSel + '[data-id="' + keepId + '"]'); if(el) el.focus({ preventScroll:true }); }
   }
 
   generateInvite();
