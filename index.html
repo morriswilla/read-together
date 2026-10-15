@@ -867,6 +867,9 @@
   // ---------------- render: full list ----------------
   function renderList(){
     const container = document.getElementById('planList');
+    // remember which book groups the reader has open, so checking a box doesn't collapse them
+    const openIds = new Set([...container.querySelectorAll('.book-group')]
+      .filter(el => el.querySelector('.day-list.open')).map(el => el.id));
     container.innerHTML = '';
     GROUPS.forEach((g, i)=>{
       const doneCount = g.days.filter(d=>completed.has(d.id)).length;
@@ -912,6 +915,8 @@
         list.classList.toggle('open');
       });
 
+      if(openIds.has(group.id)){ toggle.setAttribute('aria-expanded','true'); list.classList.add('open'); }
+
       group.appendChild(toggle);
       group.appendChild(list);
       container.appendChild(group);
@@ -956,10 +961,18 @@
   let initialized = false;
   function render(){
     if(!initialized){ viewedWeek = currentWeekIndex(); initialized = true; }
+    // Rebuilding the page sections can collapse the page height and jump the view to the top,
+    // so remember where the reader was and put them back exactly there.
+    const y = window.scrollY;
+    const trail = document.querySelector('.trail-scroll');
+    const trailX = trail ? trail.scrollLeft : 0;
     renderWeek();
     renderProgress();
     renderTrail();
     renderList();
+    const trailAfter = document.querySelector('.trail-scroll');
+    if(trailAfter) trailAfter.scrollLeft = trailX;
+    if(y > 0) window.scrollTo({ top:y, left:0, behavior:'instant' });
   }
 
   generateInvite();
