@@ -4,12 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Read Together — Buck Run Baptist Church</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com https://use.typekit.net https://p.typekit.net; font-src https://fonts.gstatic.com https://use.typekit.net https://p.typekit.net; img-src data: https://p.typekit.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com https://use.typekit.net https://p.typekit.net; font-src https://fonts.gstatic.com https://use.typekit.net https://p.typekit.net; img-src 'self' data: https://p.typekit.net; connect-src https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'">
 <meta name="description" content="Buck Run Baptist Church's Bible reading plan. Read the whole Bible together, one week at a time.">
 <meta name="theme-color" content="#080D12">
 <meta property="og:title" content="Read Together — Buck Run Baptist Church">
 <meta property="og:description" content="Read the whole Bible together, one week at a time.">
 <meta property="og:type" content="website">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Read Together">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23080D12'/%3E%3Cg transform='translate%2813.6%2C14.5%29 scale%280.31%29' fill='%23EFEDE3'%3E%3Cpath d='M106.32%2C230.22l-12.41-11.21c-17.4-15.71-45.88-18.72-84.66-8.95l-9.25%2C2.33v-65.98l106.32-54.62v138.43ZM49.19%2C189.61c16.47%2C0%2C30.58%2C3.19%2C42.26%2C9.57v-83.04L14.87%2C155.48v38.02c12.38-2.6%2C23.83-3.89%2C34.33-3.89Z'/%3E%3Cpath d='M128.27%2C230.22V91.79l106.32%2C54.62v65.98l-9.25-2.33c-38.78-9.77-67.26-6.75-84.66%2C8.95l-12.41%2C11.21ZM143.13%2C116.14v83.04c19.12-10.44%2C44.77-12.35%2C76.59-5.68v-38.02l-76.59-39.35Z'/%3E%3Cpath d='M234.59%2C120.08l-117.29-60.26L0%2C120.08v-59.82L117.29%2C0l117.29%2C60.26v59.82ZM117.29%2C43.11l102.43%2C52.62v-26.4L117.29%2C16.71%2C14.87%2C69.33v26.4l102.43-52.62Z'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/qxx3pod.css">
@@ -35,6 +37,28 @@
     margin:0; background:var(--cloud); color:var(--ink);
     font-family:var(--body); line-height:1.5; -webkit-font-smoothing:antialiased;
   }
+  /* week complete note */
+  .week-done{margin-top:14px; padding:14px 16px; border:1px solid rgba(138,179,177,.5); border-radius:6px; background:rgba(138,179,177,.12); color:var(--cloud); display:flex; align-items:center; gap:12px;}
+  .week-done[hidden]{display:none;}
+  .week-done .script{font-family:var(--script); font-size:28px; color:var(--seafoam); line-height:1;}
+  .week-done p{margin:0; font-size:17px; line-height:1.35;}
+  /* add-to-home-screen tip */
+  .a2hs{margin:0 0 4px;}
+  .a2hs[hidden]{display:none;}
+  .a2hs-card{display:flex; gap:14px; align-items:flex-start; background:#fff; border:2px solid var(--seafoam); border-radius:8px; padding:14px 14px 12px;}
+  .a2hs-card img{width:44px; height:44px; border-radius:10px; flex:none;}
+  .a2hs-card h3{font-size:21px; margin:0 0 2px;}
+  .a2hs-card p{margin:0 0 8px; font-size:16.5px; line-height:1.4;}
+  .a2hs-card button{font-family:var(--body); font-size:16px; font-weight:600; background:none; border:0; color:#4a5560; text-decoration:underline; padding:8px 0; min-height:40px; cursor:pointer;}
+  /* gentle save-your-progress nudge */
+  .nudge{position:fixed; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom, 0px)); z-index:150; background:var(--deep); color:var(--cloud); border:2px solid var(--accent); border-radius:12px; padding:14px 16px; box-shadow:0 8px 30px rgba(0,0,0,.4);}
+  .nudge[hidden]{display:none;}
+  @media (min-width:640px){ .nudge{left:auto; right:20px; max-width:420px;} }
+  .nudge p{margin:0 0 12px; font-size:17px; line-height:1.4;}
+  .nudge-actions{display:flex; gap:10px; flex-wrap:wrap;}
+  .nudge-actions button{font-family:var(--body); font-size:17px; font-weight:700; min-height:48px; border-radius:10px; padding:0 16px; cursor:pointer;}
+  .nudge-yes{background:var(--accent); border:2px solid var(--accent); color:#fff;}
+  .nudge-no{background:transparent; border:2px solid rgba(239,237,227,.5); color:var(--cloud);}
   @media (prefers-reduced-motion:reduce){ *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;} }
   a{color:inherit;}
   button{font-family:inherit; cursor:pointer;}
@@ -296,7 +320,7 @@
   .invite-copy .script{font-family:var(--script); font-size:26px; color:var(--accent); display:block; margin-bottom:6px;}
   .invite-copy p{margin:0; color:rgba(31,51,69,0.8); font-size:16.5px; max-width:44ch;}
   .invite-box textarea{
-    width:100%; min-height:92px; resize:vertical; font-family:var(--body); font-size:16.5px;
+    width:100%; min-height:150px; resize:vertical; font-family:var(--body); font-size:16.5px;
     border:1px solid rgba(31,51,69,0.25); border-radius:4px; padding:12px; color:var(--ink); background:var(--cloud);
   }
   .invite-actions{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
@@ -414,6 +438,7 @@
           </div>
           <div class="week-subhint" id="weekSubhint">Check off each reading whenever you get to it.</div>
           <div class="week-grid" id="weekGrid"></div>
+          <div class="week-done" id="weekDone" role="status" aria-live="polite" hidden></div>
         </div>
         <div class="progress-card">
           <p class="eyebrow" style="margin-bottom:0;">Your Progress</p>
@@ -432,9 +457,22 @@
           </div>
           <div class="stat-row">
             <div class="stat-block"><b id="statDone">0</b><span>Days Read</span></div>
-            <div class="stat-block"><b id="statStreak">0</b><span>In A Row</span></div>
+            <div class="stat-block"><b id="statStreak">0</b><span>In Order</span></div>
             <div class="stat-block"><b id="statBook">—</b><span>Current Book</span></div>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="a2hs" id="a2hsTip" hidden>
+    <div class="wrap">
+      <div class="a2hs-card">
+        <img src="apple-touch-icon.png" alt="" width="44" height="44">
+        <div>
+          <h3>Keep this one tap away</h3>
+          <p id="a2hsText"></p>
+          <button type="button" id="a2hsDismiss">Got it, hide this</button>
         </div>
       </div>
     </div>
@@ -493,6 +531,7 @@
         <div class="invite-box">
           <textarea id="inviteText" readonly></textarea>
           <div class="invite-actions">
+            <button class="btn-secondary" id="shareBtn" hidden>Share</button>
             <button class="btn-secondary" id="copyBtn">Copy Message</button>
             <button class="btn-ghost" id="reshuffleBtn">Regenerate</button>
           </div>
@@ -502,6 +541,14 @@
     </div>
   </section>
 </main>
+
+<div class="nudge" id="nudge" role="region" aria-label="Save your progress" hidden>
+  <p>Nice work. Want to save your progress so it's here on any phone?</p>
+  <div class="nudge-actions">
+    <button type="button" class="nudge-yes" id="nudgeYes">Save my progress</button>
+    <button type="button" class="nudge-no" id="nudgeNo">Not now</button>
+  </div>
+</div>
 
 <footer>
   <svg class="topo" viewBox="0 0 400 180" preserveAspectRatio="none" aria-hidden="true">
@@ -727,6 +774,7 @@
     try{ localStorage.removeItem(ANON_KEY); }catch(e){} // don't leave it for the next person on a shared phone
     if(r.ok) pushRemote();
     else setFlag('needspull', true);   // couldn't reach the server: don't overwrite it; sync when we can
+    nudge.hidden = true;
     renderAccount(); render();
     document.getElementById('siSignedAs').textContent = r.ok
       ? 'Your progress is saved for ' + profile.display + '. To use another phone, type that same ' +
@@ -744,10 +792,26 @@
     renderAccount(); render();
     closeDlg();
   });
+  // After the very first check, gently offer to save progress (once; "Not now" is remembered).
+  const NUDGE_KEY = 'read-together-nudge-dismissed';
+  const nudge = document.getElementById('nudge');
+  function maybeNudge(){
+    if(profile || !completed.size) return;
+    let dismissed = false; try{ dismissed = !!localStorage.getItem(NUDGE_KEY); }catch(e){}
+    if(!dismissed) nudge.hidden = false;
+  }
+  function hideNudge(remember){
+    nudge.hidden = true;
+    if(remember){ try{ localStorage.setItem(NUDGE_KEY,'1'); }catch(e){} }
+  }
+  document.getElementById('nudgeNo').addEventListener('click', ()=>hideNudge(true));
+  document.getElementById('nudgeYes').addEventListener('click', ()=>{ hideNudge(false); openAccount(); });
+
   function toggleDay(id){
     if(completed.has(id)) completed.delete(id); else completed.add(id);
     changeCount++;
     saveProgress();
+    maybeNudge();
     render();
   }
 
@@ -803,8 +867,24 @@
     grid.innerHTML = '';
 
     if(week.length === 0){
+      document.getElementById('weekDone').hidden = true;
       grid.innerHTML = `<div class="all-caught-up">You've read every day in Year 1. Well done — Year 2 will pick up right where this leaves off.</div>`;
       return;
+    }
+
+    // celebrate a finished week (and a finished book)
+    const doneBox = document.getElementById('weekDone');
+    if(week.every(d => completed.has(d.id))){
+      const finished = week.find(d => d.finishesBook && !d.isRest);
+      const isRestWeek = week.every(d => d.isRest);
+      const msg = finished ? `You finished ${finished.book}. Well done!`
+                : isRestWeek ? 'Rest week complete. Well done!'
+                : `Week ${viewedWeek + 1} complete. Well done!`;
+      doneBox.innerHTML = '<span class="script" aria-hidden="true">Amen!</span><p></p>';
+      doneBox.querySelector('p').textContent = msg;
+      doneBox.hidden = false;
+    }else{
+      doneBox.hidden = true;
     }
 
     week.forEach((d, slot)=>{
@@ -1016,6 +1096,33 @@
     if(y > 0) window.scrollTo({ top:y, left:0, behavior:'instant' });
     if(keepId){ const el = document.querySelector(keepSel + '[data-id="' + keepId + '"]'); if(el) el.focus({ preventScroll:true }); }
   }
+
+  // ---------------- share button (phones' native share sheet) ----------------
+  const shareBtn = document.getElementById('shareBtn');
+  if(navigator.share){
+    shareBtn.hidden = false;
+    shareBtn.addEventListener('click', ()=>{
+      navigator.share({ title:'Read Together', text:document.getElementById('inviteText').value }).catch(()=>{});
+    });
+  }
+
+  // ---------------- add-to-home-screen tip (phones only, not once installed) ----------------
+  (function(){
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/.test(ua);
+    const installed = window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    let hidden = false; try{ hidden = !!localStorage.getItem('read-together-a2hs-dismissed'); }catch(e){}
+    if(installed || hidden || !(isIOS || isAndroid)) return;
+    document.getElementById('a2hsText').textContent = isIOS
+      ? 'Tap the Share button (the square with an arrow) at the bottom of your screen, then choose "Add to Home Screen." Read Together will sit on your phone like an app.'
+      : 'Tap the menu button (three dots) at the top of your browser, then choose "Add to Home screen." Read Together will sit on your phone like an app.';
+    const tip = document.getElementById('a2hsTip');
+    tip.hidden = false;
+    document.getElementById('a2hsDismiss').addEventListener('click', ()=>{
+      tip.hidden = true; try{ localStorage.setItem('read-together-a2hs-dismissed','1'); }catch(e){}
+    });
+  })();
 
   generateInvite();
   loadProgress();
